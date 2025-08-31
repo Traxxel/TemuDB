@@ -1,0 +1,12 @@
+[
+  {
+    "Id": 1,
+    "Username": "adminstefanmeyer",
+    "PasswordHash": "$2a$11$DBipnwKl75RljVUcSwxsTOZIXycK10hPYc232m0Qr3pjFPbGr7NVW",
+    "DisplayName": "Administrator",
+    "IsActive": true,
+    "IsAdmin": true,
+    "CreatedAt": "2025-08-31T08:33:05.286823Z",
+    "ActivatedAt": "2025-08-31T08:33:05.2868541Z"
+  }
+]

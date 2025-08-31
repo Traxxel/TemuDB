@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "TemuDB.Blazor/1.0.0": {
+        "runtime": {
+          "TemuDB.Blazor.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TemuDB.Blazor/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

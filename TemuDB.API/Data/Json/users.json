@@ -1,0 +1,22 @@
+[
+  {
+    "Id": 1,
+    "Username": "adminstefanmeyer",
+    "PasswordHash": "$2a$11$DBipnwKl75RljVUcSwxsTOZIXycK10hPYc232m0Qr3pjFPbGr7NVW",
+    "DisplayName": "Administrator",
+    "IsActive": true,
+    "IsAdmin": true,
+    "CreatedAt": "2025-08-31T08:33:05.286823Z",
+    "ActivatedAt": "2025-08-31T08:33:05.2868541Z"
+  },
+  {
+    "Id": 2,
+    "Username": "stefan",
+    "PasswordHash": "$2a$11$BzHRBvjJRP5ieS8MDRVQnurfw5mtygb8NStTTbwS5/uTMJY2v..TW",
+    "DisplayName": "Stefan",
+    "IsActive": true,
+    "IsAdmin": false,
+    "CreatedAt": "2025-08-31T10:08:37.9816125Z",
+    "ActivatedAt": "2025-08-31T10:08:46.5631524Z"
+  }
+]

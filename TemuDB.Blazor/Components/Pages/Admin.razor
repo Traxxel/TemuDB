@@ -1,0 +1,263 @@
+@page "/admin"
+@rendermode InteractiveServer
+@using TemuDB.Blazor.Services
+@inject AuthService AuthService
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<PageTitle>Admin-Verwaltung - Temu-Linksammlung</PageTitle>
+
+@if (currentUser == null || !currentUser.IsAdmin)
+{
+    <div class="container mt-5">
+        <div class="text-center">
+            <h3>Zugriff verweigert</h3>
+            <p>Sie haben keine Berechtigung für diese Seite.</p>
+            <a href="/" class="btn btn-primary">Zurück zur Startseite</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Admin-Verwaltung</h2>
+                    <div>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person-plus"></i>
+                                    Neue Benutzer freischalten
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @if (isLoadingUsers)
+                                {
+                                    <div class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Laden...</span>
+                                        </div>
+                                    </div>
+                                }
+                                else if (inactiveUsers.Count == 0)
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                                        <p class="mt-2 text-muted">Keine neuen Benutzer zur Freischaltung vorhanden.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="list-group">
+                                        @foreach (var user in inactiveUsers)
+                                        {
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">@user.DisplayName</h6>
+                                                    <small class="text-muted">
+                                                        Benutzername: @user.Username<br>
+                                                        Registriert: @user.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                                    </small>
+                                                </div>
+                                                <button @onclick="() => ActivateUser(user.Id)" class="btn btn-success btn-sm"
+                                                    disabled="@isActivating">
+                                                    @if (isActivating)
+                                                    {
+                                                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-check-lg"></i>
+                                                        <span>Freischalten</span>
+                                                    }
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-people"></i>
+                                    Alle Benutzer
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                @if (isLoadingUsers)
+                                {
+                                    <div class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Laden...</span>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Anzeigename</th>
+                                                    <th>Benutzername</th>
+                                                    <th>Status</th>
+                                                    <th>Rolle</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var user in allUsers)
+                                                {
+                                                    <tr>
+                                                        <td>@user.DisplayName</td>
+                                                        <td>@user.Username</td>
+                                                        <td>
+                                                            @if (user.IsActive)
+                                                            {
+                                                                <span class="badge bg-success">Aktiv</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-warning">Inaktiv</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (user.IsAdmin)
+                                                            {
+                                                                <span class="badge bg-primary">Admin</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-secondary">Benutzer</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(message))
+                {
+                    <div class="alert @(isSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+                        @message
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private User? currentUser;
+    private List<AdminUser> inactiveUsers = new();
+    private List<AdminUser> allUsers = new();
+    private string? message;
+    private bool isSuccess = false;
+    private bool isLoadingUsers = true;
+    private bool isActivating = false;
+    private bool hasRendered = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Keine localStorage-Zugriffe hier, da Prerendering aktiv ist
+        isLoadingUsers = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasRendered)
+        {
+            hasRendered = true;
+            currentUser = await AuthService.GetCurrentUserAsync();
+
+            if (currentUser?.IsAdmin == true)
+            {
+                await LoadUsers();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            inactiveUsers = await ApiService.GetAsync<List<AdminUser>>("auth/users/inactive") ?? new();
+            allUsers = await ApiService.GetAsync<List<AdminUser>>("auth/users/all") ?? new();
+        }
+        catch (Exception ex)
+        {
+            message = "Fehler beim Laden der Benutzer: " + ex.Message;
+            isSuccess = false;
+        }
+    }
+
+    private async Task ActivateUser(int userId)
+    {
+        isActivating = true;
+        message = null;
+
+        try
+        {
+            var result = await ApiService.PostAsync<ActivateResult>($"auth/users/{userId}/activate", new { });
+
+            if (result?.Success == true)
+            {
+                message = "Benutzer erfolgreich freigeschaltet!";
+                isSuccess = true;
+                await LoadUsers(); // Liste neu laden
+            }
+            else
+            {
+                message = result?.Message ?? "Fehler beim Freischalten des Benutzers";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Ein Fehler ist aufgetreten: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isActivating = false;
+        }
+    }
+
+    public class AdminUser
+    {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public bool IsAdmin { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ActivatedAt { get; set; }
+    }
+
+    public class ActivateResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+    }
+}

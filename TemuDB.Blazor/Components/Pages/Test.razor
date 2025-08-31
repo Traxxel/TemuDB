@@ -1,0 +1,33 @@
+@page "/test"
+@rendermode InteractiveServer
+
+<PageTitle>Test - Temu-Linksammlung</PageTitle>
+
+<div class="container mt-5">
+    <h1>Blazor Server Test</h1>
+
+    <p>Aktuelle Zeit: @DateTime.Now.ToString("HH:mm:ss.fff")</p>
+
+    <button class="btn btn-primary" @onclick="IncrementCount">
+        Klick mich! (@currentCount)
+    </button>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info mt-3">
+            @message
+        </div>
+    }
+</div>
+
+@code {
+    private int currentCount = 0;
+    private string message = "";
+
+    private void IncrementCount()
+    {
+        currentCount++;
+        message = $"Button wurde {currentCount} mal geklickt!";
+        StateHasChanged();
+    }
+}

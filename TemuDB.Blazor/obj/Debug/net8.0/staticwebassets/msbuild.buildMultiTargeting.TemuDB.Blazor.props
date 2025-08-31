@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\TemuDB.Blazor.props" />
+</Project>

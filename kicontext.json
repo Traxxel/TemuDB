@@ -1,0 +1,91 @@
+{
+  "projekt": {
+    "name": "Temu-Linksammlung",
+    "beschreibung": "Webanwendung zur Verwaltung von Temu-Shopping-Links mit Benutzerverwaltung",
+    "version": "1.0",
+    "framework": ".NET 8"
+  },
+  "architektur": {
+    "komponenten": [
+      {
+        "name": "WebAPI",
+        "typ": "C# .NET 8 WebAPI",
+        "speicherung": "Lokale JSON-Datei",
+        "authentifizierung": "Erforderlich für alle Endpunkte",
+        "verzeichnis": "Unterverzeichnis im Hauptordner"
+      },
+      {
+        "name": "Blazor Frontend",
+        "typ": ".NET 8 Blazor (einfachste Option)",
+        "komponenten": "Microsoft-Blazor-Komponenten (später erweiterbar)",
+        "verzeichnis": "Unterverzeichnis im Hauptordner"
+      }
+    ],
+    "solution": {
+      "datei": "TemuDB.sln",
+      "position": "Hauptverzeichnis"
+    }
+  },
+  "benutzerverwaltung": {
+    "admin": {
+      "benutzername": "adminstefanmeyer",
+      "passwort": "JJvmr111",
+      "rolle": "Administrator"
+    },
+    "registrierung": {
+      "felder": ["Benutzername", "Passwort", "Anzeigename (für Admin-Erkennung)"],
+      "freischaltung": "Admin muss neue Benutzer aktivieren",
+      "hinweis": "Benutzer wird auf Freischaltung hingewiesen"
+    },
+    "funktionen": [
+      "Anmeldung mit Benutzername/Passwort",
+      "Registrierung neuer Benutzer",
+      "Admin-Verwaltungsseite für Benutzerfreischaltung",
+      "Abmeldung"
+    ]
+  },
+  "funktionalitaet": {
+    "uebersichtsseite": {
+      "beschreibung": "Hauptseite nach Anmeldung",
+      "inhalt": "Liste aller gesammelten Temu-Links",
+      "features": [
+        "Durchsuchbar",
+        "Sortierbar",
+        "Button 'Neu erfassen'"
+      ]
+    },
+    "neu_erfassen": {
+      "beschreibung": "Neue Seite zum Hinzufügen von Links",
+      "eingabefelder": [
+        {
+          "name": "Link-Eingabe",
+          "typ": "Großes Textfeld",
+          "methoden": ["Ctrl+V (Copy-Paste)", "Drag & Drop von Browser-Adresszeile"]
+        },
+        {
+          "name": "Kurzbeschreibung",
+          "typ": "Einzeiliges Textfeld",
+          "pflicht": true
+        }
+      ],
+      "aktion": "Button 'Speichern' - Übertragung per WebAPI"
+    }
+  },
+  "datenspeicherung": {
+    "format": "JSON (später durch Datenbank ersetzbar)",
+    "felder": [
+      "Benutzername",
+      "Artikel-Kurzbeschreibung", 
+      "Link",
+      "Timestamp der Speicherung"
+    ]
+  },
+  "sicherheit": {
+    "api_zugriff": "Nur für authentifizierte Benutzer",
+    "anonymer_zugriff": "Unterbunden"
+  },
+  "erweiterbarkeit": {
+    "frontend_komponenten": "Austausch gegen DevExpress oder andere moderne Frameworks möglich",
+    "datenbank": "JSON-Speicherung so gestalten, dass späterer Wechsel zur Datenbank einfach ist"
+  }
+}

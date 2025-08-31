@@ -1,0 +1,143 @@
+@page "/register"
+@rendermode InteractiveServer
+@using TemuDB.Blazor.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Registrierung - Temu-Linksammlung</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Registrierung</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(message))
+                    {
+                        <div class="alert @(isSuccess ? "alert-success" : "alert-danger")" role="alert">
+                            @message
+                        </div>
+                    }
+
+                    <EditForm Model="@registerModel" OnValidSubmit="HandleRegister" FormName="registerForm">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Benutzername</label>
+                            <InputText id="username" class="form-control" @bind-Value="registerModel.Username" />
+                            <ValidationMessage For="@(() => registerModel.Username)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="displayName" class="form-label">Anzeigename (für Admin-Erkennung)</label>
+                            <InputText id="displayName" class="form-control" @bind-Value="registerModel.DisplayName" />
+                            <ValidationMessage For="@(() => registerModel.DisplayName)" />
+                            <div class="form-text">Geben Sie einen Namen ein, an dem Sie der Administrator erkennen kann
+                                (z.B. Vorname oder Spitzname).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Passwort</label>
+                            <InputText type="password" id="password" class="form-control"
+                                @bind-Value="registerModel.Password" />
+                            <ValidationMessage For="@(() => registerModel.Password)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Passwort bestätigen</label>
+                            <InputText type="password" id="confirmPassword" class="form-control"
+                                @bind-Value="registerModel.ConfirmPassword" />
+                            <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Registrieren...</span>
+                                }
+                                else
+                                {
+                                    <span>Registrieren</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+
+                    <div class="text-center mt-3">
+                        <a href="/login" class="btn btn-link">Bereits ein Konto? Anmelden</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string? message;
+    private bool isSuccess = false;
+    private bool isLoading = false;
+
+    private async Task HandleRegister()
+    {
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            message = "Passwörter stimmen nicht überein";
+            isSuccess = false;
+            return;
+        }
+
+        isLoading = true;
+        message = null;
+
+        try
+        {
+            var success = await AuthService.RegisterAsync(registerModel.Username, registerModel.Password,
+            registerModel.DisplayName);
+
+            if (success)
+            {
+                message = "Registrierung erfolgreich! Bitte warten Sie auf die Freischaltung durch den Administrator.";
+                isSuccess = true;
+                registerModel = new();
+            }
+            else
+            {
+                message = "Registrierung fehlgeschlagen. Benutzername möglicherweise bereits vergeben.";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Ein Fehler ist aufgetreten: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "Benutzername ist erforderlich")]
+        [StringLength(50, ErrorMessage = "Benutzername darf maximal 50 Zeichen haben")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Anzeigename ist erforderlich")]
+        [StringLength(100, ErrorMessage = "Anzeigename darf maximal 100 Zeichen haben")]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Passwort ist erforderlich")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Passwort muss mindestens 6 Zeichen haben")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Passwort-Bestätigung ist erforderlich")]
+        [Compare(nameof(Password), ErrorMessage = "Passwörter stimmen nicht überein")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
