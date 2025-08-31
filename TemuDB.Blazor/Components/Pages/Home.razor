@@ -35,6 +35,9 @@ else
                         <a href="/new" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> Neu erfassen
                         </a>
+                        <a href="/public" class="btn btn-outline-info ms-2">
+                            <i class="bi bi-globe"></i> Öffentliche Links
+                        </a>
                         @if (currentUser.IsAdmin)
                         {
                             <a href="/admin" class="btn btn-outline-secondary ms-2">
@@ -104,6 +107,7 @@ else
                                         <tr>
                                             <th>Beschreibung</th>
                                             <th>Link</th>
+                                            <th>Status</th>
                                             <th>Erstellt am</th>
                                             <th>Aktionen</th>
                                         </tr>
@@ -120,6 +124,20 @@ else
                                                         @GetShortUrl(link.Link)
                                                         <i class="bi bi-box-arrow-up-right ms-1"></i>
                                                     </a>
+                                                </td>
+                                                <td>
+                                                    @if (link.IsPublic)
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-globe"></i> Öffentlich
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-lock"></i> Privat
+                                                        </span>
+                                                    }
                                                 </td>
                                                 <td>
                                                     <small class="text-muted">
@@ -255,6 +273,7 @@ else
         public string Username { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Link { get; set; } = string.Empty;
+        public bool IsPublic { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

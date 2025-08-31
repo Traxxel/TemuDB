@@ -80,6 +80,19 @@ else
                                 </div>
                             </div>
                             
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isPublic" @bind="linkModel.IsPublic">
+                                    <label class="form-check-label" for="isPublic">
+                                        <i class="bi bi-globe"></i> Öffentlich sichtbar
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    Wenn aktiviert, können andere Benutzer diesen Link sehen. Standardmäßig sind Links nur für Sie sichtbar.
+                                </div>
+                            </div>
+                            
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <a href="/" class="btn btn-outline-secondary me-md-2">Abbrechen</a>
                                 <button type="submit" class="btn btn-primary" disabled="@isLoading">
@@ -146,7 +159,8 @@ else
             {
                 username = currentUser.Username,
                 description = linkModel.Description,
-                link = linkModel.Link
+                link = linkModel.Link,
+                isPublic = linkModel.IsPublic
             };
             
             var result = await ApiService.PostAsync<SaveResult>("temulink", request);
@@ -219,6 +233,8 @@ else
         [Required(ErrorMessage = "Beschreibung ist erforderlich")]
         [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
         public string Description { get; set; } = string.Empty;
+        
+        public bool IsPublic { get; set; } = false;
     }
     
     public class SaveResult
