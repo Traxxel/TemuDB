@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TemuDB.API.Data;
 using TemuDB.API.Services;
 
@@ -7,6 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Entity Framework mit MySQL konfigurieren
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    ));
 
 // CORS konfigurieren
 builder.Services.AddCors(options =>
@@ -21,11 +29,27 @@ builder.Services.AddCors(options =>
 });
 
 // Services registrieren
-builder.Services.AddSingleton<JsonDataContext>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<TemuLinkService>();
+builder.Services.AddScoped<AuthServiceEF>();
+builder.Services.AddScoped<TemuLinkServiceEF>();
+builder.Services.AddScoped<DatabaseInitializer>();
 
 var app = builder.Build();
+
+// Datenbank initialisieren
+try
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+        await initializer.InitializeAsync();
+    }
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "Fehler bei der Datenbank-Initialisierung: {Message}", ex.Message);
+    logger.LogWarning("Die Anwendung startet ohne Datenbankverbindung. Stellen Sie sicher, dass MySQL läuft.");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

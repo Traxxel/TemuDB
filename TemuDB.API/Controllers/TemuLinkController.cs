@@ -8,29 +8,29 @@ namespace TemuDB.API.Controllers
     [Route("api/[controller]")]
     public class TemuLinkController : ControllerBase
     {
-        private readonly TemuLinkService _temuLinkService;
+        private readonly TemuLinkServiceEF _temuLinkService;
 
-        public TemuLinkController(TemuLinkService temuLinkService)
+        public TemuLinkController(TemuLinkServiceEF temuLinkService)
         {
             _temuLinkService = temuLinkService;
         }
 
         [HttpGet("user/{username}")]
-        public IActionResult GetTemuLinksByUser(string username)
+        public async Task<IActionResult> GetTemuLinksByUser(string username)
         {
-            var links = _temuLinkService.GetTemuLinksByUser(username);
+            var links = await _temuLinkService.GetTemuLinksByUserAsync(username);
             return Ok(links);
         }
 
         [HttpPost]
-        public IActionResult AddTemuLink([FromBody] TemuLinkRequest request)
+        public async Task<IActionResult> AddTemuLink([FromBody] TemuLinkRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var temuLink = _temuLinkService.AddTemuLink(request.Username, request.Description, request.Link, request.IsPublic);
+            var temuLink = await _temuLinkService.AddTemuLinkAsync(request.Username, request.Description, request.Link, request.IsPublic);
 
             if (temuLink != null)
             {
@@ -41,14 +41,14 @@ namespace TemuDB.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateTemuLink(int id, [FromBody] TemuLinkRequest request)
+        public async Task<IActionResult> UpdateTemuLink(int id, [FromBody] TemuLinkRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var temuLink = _temuLinkService.UpdateTemuLink(id, request.Username, request.Description, request.Link, request.IsPublic);
+            var temuLink = await _temuLinkService.UpdateTemuLinkAsync(id, request.Username, request.Description, request.Link, request.IsPublic);
 
             if (temuLink != null)
             {
@@ -59,9 +59,9 @@ namespace TemuDB.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteTemuLink(int id, [FromQuery] string username)
+        public async Task<IActionResult> DeleteTemuLink(int id, [FromQuery] string username)
         {
-            var success = _temuLinkService.DeleteTemuLink(id, username);
+            var success = await _temuLinkService.DeleteTemuLinkAsync(id, username);
 
             if (success)
             {
@@ -72,16 +72,16 @@ namespace TemuDB.API.Controllers
         }
 
         [HttpGet("all")]
-        public IActionResult GetAllTemuLinks()
+        public async Task<IActionResult> GetAllTemuLinks()
         {
-            var links = _temuLinkService.GetAllTemuLinks();
+            var links = await _temuLinkService.GetAllTemuLinksAsync();
             return Ok(links);
         }
 
         [HttpGet("public")]
-        public IActionResult GetPublicTemuLinks()
+        public async Task<IActionResult> GetPublicTemuLinks()
         {
-            var links = _temuLinkService.GetPublicTemuLinks();
+            var links = await _temuLinkService.GetPublicTemuLinksAsync();
             return Ok(links);
         }
     }

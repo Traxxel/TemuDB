@@ -8,17 +8,17 @@ namespace TemuDB.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly AuthServiceEF _authService;
 
-        public AuthController(AuthService authService)
+        public AuthController(AuthServiceEF authService)
         {
             _authService = authService;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = _authService.AuthenticateUser(request.Username, request.Password);
+            var user = await _authService.AuthenticateUserAsync(request.Username, request.Password);
 
             if (user != null)
             {
@@ -39,14 +39,14 @@ namespace TemuDB.API.Controllers
         }
 
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var success = _authService.RegisterUser(request);
+            var success = await _authService.RegisterUserAsync(request);
 
             if (success)
             {
@@ -57,23 +57,23 @@ namespace TemuDB.API.Controllers
         }
 
         [HttpGet("users/inactive")]
-        public IActionResult GetInactiveUsers()
+        public async Task<IActionResult> GetInactiveUsers()
         {
-            var inactiveUsers = _authService.GetInactiveUsers();
+            var inactiveUsers = await _authService.GetInactiveUsersAsync();
             return Ok(inactiveUsers);
         }
 
         [HttpGet("users/all")]
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetAllUsers()
         {
-            var allUsers = _authService.GetAllUsers();
+            var allUsers = await _authService.GetAllUsersAsync();
             return Ok(allUsers);
         }
 
         [HttpPost("users/{userId}/activate")]
-        public IActionResult ActivateUser(int userId)
+        public async Task<IActionResult> ActivateUser(int userId)
         {
-            var success = _authService.ActivateUser(userId);
+            var success = await _authService.ActivateUserAsync(userId);
 
             if (success)
             {
