@@ -32,8 +32,8 @@ namespace TemuDB.API.Data
                 var adminUser = new User
                 {
                     Id = 1,
-                    Username = "adminstefanmeyer",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("JJvmr111"),
+                    Username = "admin",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin"),
                     DisplayName = "Administrator",
                     IsActive = true,
                     IsAdmin = true,
