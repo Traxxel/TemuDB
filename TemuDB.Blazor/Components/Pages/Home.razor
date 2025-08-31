@@ -145,10 +145,16 @@ else
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <button @onclick="() => DeleteLink(link.Id)"
-                                                        class="btn btn-sm btn-outline-danger" title="Link löschen">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="/edit/@link.Id" class="btn btn-sm btn-outline-primary"
+                                                            title="Link bearbeiten">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <button @onclick="() => DeleteLink(link.Id)"
+                                                            class="btn btn-sm btn-outline-danger" title="Link löschen">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         }

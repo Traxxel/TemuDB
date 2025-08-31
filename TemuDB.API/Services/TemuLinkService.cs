@@ -33,6 +33,24 @@ namespace TemuDB.API.Services
             return temuLink;
         }
 
+        public TemuLink? UpdateTemuLink(int id, string username, string description, string link, bool isPublic)
+        {
+            var allLinks = _dataContext.GetTemuLinks();
+            var existingLink = allLinks.FirstOrDefault(t => t.Id == id && t.Username == username);
+
+            if (existingLink != null)
+            {
+                existingLink.Description = description;
+                existingLink.Link = link;
+                existingLink.IsPublic = isPublic;
+
+                _dataContext.UpdateTemuLink(existingLink);
+                return existingLink;
+            }
+
+            return null;
+        }
+
         public bool DeleteTemuLink(int id, string username)
         {
             var allLinks = _dataContext.GetTemuLinks();

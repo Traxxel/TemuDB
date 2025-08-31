@@ -40,6 +40,24 @@ namespace TemuDB.API.Controllers
             return BadRequest(new { success = false, message = "Fehler beim Speichern des Links" });
         }
 
+        [HttpPut("{id}")]
+        public IActionResult UpdateTemuLink(int id, [FromBody] TemuLinkRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var temuLink = _temuLinkService.UpdateTemuLink(id, request.Username, request.Description, request.Link, request.IsPublic);
+
+            if (temuLink != null)
+            {
+                return Ok(new { success = true, temuLink });
+            }
+
+            return NotFound(new { success = false, message = "Link nicht gefunden oder keine Berechtigung" });
+        }
+
         [HttpDelete("{id}")]
         public IActionResult DeleteTemuLink(int id, [FromQuery] string username)
         {

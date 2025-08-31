@@ -65,6 +65,44 @@ namespace TemuDB.Blazor.Services
             return default;
         }
 
+        public async Task<T?> PutAsync<T>(string endpoint, object data)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                Console.WriteLine($"API PUT Request: {_baseUrl}/{endpoint}");
+                Console.WriteLine($"Request Body: {json}");
+
+                var response = await _httpClient.PutAsync($"{_baseUrl}/{endpoint}", content);
+
+                Console.WriteLine($"Response Status: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Response Content: {responseContent}");
+
+                    return JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error Response: {errorContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"API Error: {ex.Message}");
+            }
+
+            return default;
+        }
+
         public async Task<bool> DeleteAsync(string endpoint)
         {
             var response = await _httpClient.DeleteAsync($"{_baseUrl}/{endpoint}");

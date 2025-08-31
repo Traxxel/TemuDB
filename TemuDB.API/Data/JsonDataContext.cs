@@ -8,23 +8,23 @@ namespace TemuDB.API.Data
         private readonly string _dataDirectory;
         private readonly string _usersFile;
         private readonly string _temuLinksFile;
-        
+
         public JsonDataContext()
         {
             _dataDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Json");
             _usersFile = Path.Combine(_dataDirectory, "users.json");
             _temuLinksFile = Path.Combine(_dataDirectory, "temulinks.json");
-            
+
             // Erstelle Datenverzeichnis falls es nicht existiert
             if (!Directory.Exists(_dataDirectory))
             {
                 Directory.CreateDirectory(_dataDirectory);
             }
-            
+
             // Initialisiere Dateien falls sie nicht existieren
             InitializeFiles();
         }
-        
+
         private void InitializeFiles()
         {
             if (!File.Exists(_usersFile))
@@ -40,47 +40,47 @@ namespace TemuDB.API.Data
                     CreatedAt = DateTime.UtcNow,
                     ActivatedAt = DateTime.UtcNow
                 };
-                
+
                 var users = new List<User> { adminUser };
                 SaveUsers(users);
             }
-            
+
             if (!File.Exists(_temuLinksFile))
             {
                 SaveTemuLinks(new List<TemuLink>());
             }
         }
-        
+
         public List<User> GetUsers()
         {
             if (!File.Exists(_usersFile))
                 return new List<User>();
-                
+
             var json = File.ReadAllText(_usersFile);
             return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
         }
-        
+
         public void SaveUsers(List<User> users)
         {
             var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_usersFile, json);
         }
-        
+
         public List<TemuLink> GetTemuLinks()
         {
             if (!File.Exists(_temuLinksFile))
                 return new List<TemuLink>();
-                
+
             var json = File.ReadAllText(_temuLinksFile);
             return JsonSerializer.Deserialize<List<TemuLink>>(json) ?? new List<TemuLink>();
         }
-        
+
         public void SaveTemuLinks(List<TemuLink> temuLinks)
         {
             var json = JsonSerializer.Serialize(temuLinks, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_temuLinksFile, json);
         }
-        
+
         public void AddUser(User user)
         {
             var users = GetUsers();
@@ -88,7 +88,7 @@ namespace TemuDB.API.Data
             users.Add(user);
             SaveUsers(users);
         }
-        
+
         public void UpdateUser(User user)
         {
             var users = GetUsers();
@@ -100,7 +100,19 @@ namespace TemuDB.API.Data
                 SaveUsers(users);
             }
         }
-        
+
+        public void UpdateTemuLink(TemuLink temuLink)
+        {
+            var temuLinks = GetTemuLinks();
+            var existingLink = temuLinks.FirstOrDefault(t => t.Id == temuLink.Id);
+            if (existingLink != null)
+            {
+                var index = temuLinks.IndexOf(existingLink);
+                temuLinks[index] = temuLink;
+                SaveTemuLinks(temuLinks);
+            }
+        }
+
         public void AddTemuLink(TemuLink temuLink)
         {
             var temuLinks = GetTemuLinks();
@@ -108,7 +120,7 @@ namespace TemuDB.API.Data
             temuLinks.Add(temuLink);
             SaveTemuLinks(temuLinks);
         }
-        
+
         public void DeleteTemuLink(int id)
         {
             var temuLinks = GetTemuLinks();

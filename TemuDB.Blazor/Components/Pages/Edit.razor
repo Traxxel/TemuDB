@@ -1,0 +1,304 @@
+@page "/edit/{id:int}"
+@rendermode InteractiveServer
+@using TemuDB.Blazor.Services
+@inject AuthService AuthService
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Link bearbeiten - Temu-Linksammlung</PageTitle>
+
+@if (currentUser == null)
+{
+    <div class="container mt-5">
+        <div class="text-center">
+            <h3>Bitte melden Sie sich an</h3>
+            <a href="/login" class="btn btn-primary">Anmelden</a>
+        </div>
+    </div>
+}
+else if (isLoading)
+{
+    <div class="container mt-5">
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Laden...</span>
+            </div>
+            <p class="mt-3">Link wird geladen...</p>
+        </div>
+    </div>
+}
+else if (linkToEdit == null)
+{
+    <div class="container mt-5">
+        <div class="text-center">
+            <h3>Link nicht gefunden</h3>
+            <p>Der angeforderte Link konnte nicht gefunden werden oder Sie haben keine Berechtigung, ihn zu bearbeiten.</p>
+            <a href="/" class="btn btn-primary">Zurück zur Übersicht</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Link bearbeiten</h2>
+                    <a href="/" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+                    </a>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(message))
+                        {
+                            <div class="alert @(isSuccess ? "alert-success" : "alert-danger")" role="alert">
+                                @message
+                            </div>
+                        }
+                        
+                        <EditForm Model="@linkModel" OnValidSubmit="HandleSave" FormName="editLinkForm">
+                            <DataAnnotationsValidator />
+                            
+                            <div class="mb-4">
+                                <label for="link" class="form-label">Temu-Link</label>
+                                <div class="position-relative">
+                                    <textarea id="link" class="form-control @(isDragOver ? "border-primary" : "")" 
+                                              rows="4" placeholder="Fügen Sie hier den Temu-Link ein oder ziehen Sie ihn per Drag & Drop hierher..."
+                                              @bind="linkModel.Link"
+                                              @onpaste="HandlePaste"
+                                              @ondragenter="HandleDragEnter"
+                                              @ondragleave="HandleDragLeave"
+                                              @ondragover:preventDefault
+                                              @ondrop="HandleDrop"></textarea>
+                                    @if (isDragOver)
+                                    {
+                                        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 border border-primary rounded">
+                                            <div class="text-primary">
+                                                <i class="bi bi-cloud-arrow-down" style="font-size: 2rem;"></i>
+                                                <div>Link hier ablegen</div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <ValidationMessage For="@(() => linkModel.Link)" />
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    Sie können den Link per Copy-Paste (Strg+V) einfügen oder per Drag & Drop von der Browser-Adresszeile hierher ziehen.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="description" class="form-label">Kurzbeschreibung des Artikels <span class="text-danger">*</span></label>
+                                <input type="text" id="description" class="form-control" 
+                                       placeholder="z.B. Wireless Kopfhörer, Küchenmesser Set, etc."
+                                       @bind="linkModel.Description" />
+                                <ValidationMessage For="@(() => linkModel.Description)" />
+                                <div class="form-text">
+                                    Geben Sie eine kurze Beschreibung ein, damit Sie den Artikel später wiederfinden können.
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="isPublic" @bind="linkModel.IsPublic">
+                                    <label class="form-check-label" for="isPublic">
+                                        <i class="bi bi-globe"></i> Öffentlich sichtbar
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i>
+                                    Wenn aktiviert, können andere Benutzer diesen Link sehen. Standardmäßig sind Links nur für Sie sichtbar.
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/" class="btn btn-outline-secondary me-md-2">Abbrechen</a>
+                                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                    @if (isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span>Speichern...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-check-circle"></i>
+                                        <span>Speichern</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    
+    private User? currentUser;
+    private TemuLink? linkToEdit;
+    private LinkModel linkModel = new();
+    private string? message;
+    private bool isSuccess = false;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool isDragOver = false;
+    private bool hasRendered = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Keine localStorage-Zugriffe hier, da Prerendering aktiv ist
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasRendered)
+        {
+            hasRendered = true;
+            currentUser = await AuthService.GetCurrentUserAsync();
+            
+            if (currentUser == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            await LoadLink();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task LoadLink()
+    {
+        try
+        {
+            var allLinks = await ApiService.GetAsync<List<TemuLink>>($"temulink/user/{currentUser!.Username}") ?? new();
+            linkToEdit = allLinks.FirstOrDefault(l => l.Id == Id);
+            
+            if (linkToEdit != null)
+            {
+                linkModel = new LinkModel
+                {
+                    Link = linkToEdit.Link,
+                    Description = linkToEdit.Description,
+                    IsPublic = linkToEdit.IsPublic
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Fehler beim Laden des Links: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task HandleSave()
+    {
+        if (currentUser == null || linkToEdit == null) return;
+        
+        isSaving = true;
+        message = null;
+        
+        try
+        {
+            var request = new
+            {
+                username = currentUser.Username,
+                description = linkModel.Description,
+                link = linkModel.Link,
+                isPublic = linkModel.IsPublic
+            };
+            
+            var result = await ApiService.PutAsync<SaveResult>($"temulink/{Id}", request);
+            
+            if (result?.Success == true)
+            {
+                message = "Link erfolgreich aktualisiert!";
+                isSuccess = true;
+                
+                // Nach 2 Sekunden zur Übersicht weiterleiten
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                message = result?.Message ?? "Fehler beim Aktualisieren des Links";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = "Ein Fehler ist aufgetreten: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    private void HandlePaste()
+    {
+        // Paste-Event wird automatisch durch @bind-Value verarbeitet
+        StateHasChanged();
+    }
+    
+    private void HandleDragEnter()
+    {
+        isDragOver = true;
+        StateHasChanged();
+    }
+    
+    private void HandleDragLeave()
+    {
+        isDragOver = false;
+        StateHasChanged();
+    }
+    
+    private void HandleDrop(DragEventArgs e)
+    {
+        isDragOver = false;
+        message = "Drag & Drop wird in einer späteren Version unterstützt. Bitte verwenden Sie Copy-Paste (Strg+V).";
+        isSuccess = false;
+        StateHasChanged();
+    }
+    
+    public class LinkModel
+    {
+        [Required(ErrorMessage = "Link ist erforderlich")]
+        [Url(ErrorMessage = "Bitte geben Sie einen gültigen Link ein")]
+        public string Link { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Beschreibung ist erforderlich")]
+        [StringLength(500, ErrorMessage = "Beschreibung darf maximal 500 Zeichen haben")]
+        public string Description { get; set; } = string.Empty;
+        
+        public bool IsPublic { get; set; } = false;
+    }
+    
+    public class TemuLink
+    {
+        public int Id { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public bool IsPublic { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+    
+    public class SaveResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+    }
+}
