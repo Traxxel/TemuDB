@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TemuDB.API.Data;
 using TemuDB.API.Services;
+using DotNetEnv;
+
+// .env-Datei laden
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

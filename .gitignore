@@ -360,3 +360,9 @@ Temporary Items
 .directory
 .Trash-*
 .nfs*
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
